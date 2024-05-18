@@ -22,7 +22,6 @@ using SS14.Launcher.Models.Logins;
 using SS14.Launcher.Utility;
 using Marsey.Config;
 using Marsey.Game.Patches;
-using Marsey.IPC;
 using Marsey.Stealthsey;
 using Marsey.Misc;
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
@@ -619,7 +618,7 @@ public class Connector : ReactiveObject
 
     private async Task SendConfig(string config)
     {
-        Server MarseyConfPipeServer = new Server();
+        Marsey.IPC.Server MarseyConfPipeServer = new();
         await MarseyConfPipeServer.ReadySend("MarseyConf", config);
     }
 
