@@ -9,6 +9,7 @@ public class GuestAccount : LoggedInAccount
     {
         LoginInfo.Username = $"Guest / {username}";
         LoginInfo.UserId = Guid.Empty;
+        LoginInfo.GUIDFingerprint = "";
         LoginInfo.Token = new LoginToken("marsey", DateTimeOffset.MaxValue);
     }
 

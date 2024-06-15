@@ -76,6 +76,11 @@
                        Text="Do not log in into last active account when starting the launcher."
                        Margin="8" />
 
+            <CheckBox VerticalAlignment="Center" Margin="4" IsChecked="{Binding LIFingerprintBind}">Account-Bound fingerprinting</CheckBox>
+            <TextBlock VerticalAlignment="Center" TextWrapping="Wrap"
+                       Text="Gives a fingerprint bound to an account to the auth server, empty string otherwise"
+                       Margin="8" />
+
             <TextBlock Margin="4, 0" Text="Game Behavior" Classes="NanoHeadingMedium" />
             <CheckBox VerticalAlignment="Center" Margin="4" IsChecked="{Binding DisableRPC}">Disable RPC</CheckBox>
             <TextBlock VerticalAlignment="Center" TextWrapping="Wrap"

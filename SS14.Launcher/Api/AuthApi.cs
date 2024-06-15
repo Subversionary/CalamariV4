@@ -16,10 +16,12 @@ namespace SS14.Launcher.Api;
 public sealed class AuthApi
 {
     private readonly HttpClient _httpClient;
+    private readonly Fingerprinting _fingerprinting;
 
-    public AuthApi(HttpClient http)
+    public AuthApi(HttpClient http, Fingerprinting fingerprinting)
     {
         _httpClient = http;
+        _fingerprinting = fingerprinting;
     }
 
     public async Task<AuthenticateResult> AuthenticateAsync(AuthenticateRequest request)
@@ -227,6 +229,8 @@ public sealed class AuthApi
             {
                 return;
             }
+
+            FingerprintUpdater.UpdateFingerprint(_fingerprinting, _httpClient, "");
 
             // Unknown error? uh oh.
             Log.Error("Server returned unexpected HTTP status code: {responseCode}", resp.StatusCode);

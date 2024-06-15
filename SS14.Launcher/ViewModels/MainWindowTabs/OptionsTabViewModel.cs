@@ -304,6 +304,16 @@ public class OptionsTabViewModel : MainWindowTabViewModel, INotifyPropertyChange
         }
     }
 
+    public bool LIFingerprintBind
+    {
+        get => Cfg.GetCVar(CVars.FingerprintAccountBind);
+        set
+        {
+            Cfg.SetCVar(CVars.FingerprintAccountBind, value);
+            Cfg.CommitConfig();
+        }
+    }
+
     public bool RandHWID
     {
         get => Cfg.GetCVar(CVars.RandHWID);

@@ -15,6 +15,9 @@ public class LoginInfo : ReactiveObject
 
     public string HWID { get; set; } = ""; // Empty by default
 
+    // We are not subtle whatsoever with empty GUID fingerprints
+    public string GUIDFingerprint { get; set; } = "";
+
     public override string ToString()
     {
         return $"{Username}/{UserId}";

@@ -255,10 +255,18 @@ public static class CVars
     /// </summary>
     public static readonly CVarDef<bool> RandConnAction = CVarDef.Create("RandConnAction", false);
 
+    // Misc
+
     /// <summary>
     /// Username used in guest mode
     /// </summary>
     public static readonly CVarDef<string> GuestUsername = CVarDef.Create("GuestUsername", "Guest");
+
+    /// <summary>
+    /// Use account-bound fingerprints
+    /// <see cref="Fingerprinting"/>
+    /// </summary>
+    public static readonly CVarDef<bool> FingerprintAccountBind = CVarDef.Create("AccountFingerprinting", true);
 }
 
 /// <summary>

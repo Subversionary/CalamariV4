@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
@@ -225,13 +226,16 @@ internal static class Program
     {
         var locator = Locator.CurrentMutable;
 
+        var fingerprint = new Fingerprinting();
+        locator.RegisterConstant(fingerprint);
+
         var http = HappyEyeballsHttp.CreateHttpClient();
         http.DefaultRequestHeaders.UserAgent.Add(
             new ProductInfoHeaderValue("SS14.Launcher", LauncherVersion.Version?.ToString()));
-        http.DefaultRequestHeaders.Add("SS14-Launcher-Fingerprint", "");
+        UpdateHttpClientFingerprint(http, fingerprint.GetFingerprint());
         Locator.CurrentMutable.RegisterConstant(http);
 
-        var authApi = new AuthApi(http);
+        var authApi = new AuthApi(http, fingerprint);
         var hubApi = new HubApi(http);
         var launcherInfo = new LauncherInfoManager(http);
         var overrideAssets = new OverrideAssetsManager(cfg, http, launcherInfo);
@@ -255,6 +259,15 @@ internal static class Program
                 DefaultFamilyName = "avares://SS14.Launcher/Assets/Fonts/noto_sans/*.ttf#Noto Sans"
             })
             .UseReactiveUI();
+    }
+
+    private static void UpdateHttpClientFingerprint(HttpClient httpClient, string fingerprint)
+    {
+        if (httpClient.DefaultRequestHeaders.Contains("SS14-Launcher-Fingerprint"))
+        {
+            httpClient.DefaultRequestHeaders.Remove("SS14-Launcher-Fingerprint");
+        }
+        httpClient.DefaultRequestHeaders.Add("SS14-Launcher-Fingerprint", fingerprint);
     }
 
     // Your application's entry point. Here you can initialize your MVVM framework, DI

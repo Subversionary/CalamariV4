@@ -35,6 +35,7 @@ public sealed class MainWindowViewModel : ViewModelBase, IErrorOverlayOwner
     private readonly LoginManager _loginMgr;
     private readonly HttpClient _http;
     private readonly LauncherInfoManager _infoManager;
+    private readonly Fingerprinting _fingerprinting;
 
     private int _selectedIndex;
 
@@ -54,6 +55,7 @@ public sealed class MainWindowViewModel : ViewModelBase, IErrorOverlayOwner
         _loginMgr = Locator.Current.GetRequiredService<LoginManager>();
         _http = Locator.Current.GetRequiredService<HttpClient>();
         _infoManager = Locator.Current.GetRequiredService<LauncherInfoManager>();
+        _fingerprinting = Locator.Current.GetRequiredService<Fingerprinting>();
 
         HarmonyManager.Init(new Harmony(MarseyVars.Identifier));
         Hidesey.Initialize();
@@ -241,6 +243,16 @@ public sealed class MainWindowViewModel : ViewModelBase, IErrorOverlayOwner
 
     public void TrySwitchToAccount(LoggedInAccount account)
     {
+        if (_cfg.GetCVar(CVars.FingerprintAccountBind) && account is not GuestAccount)
+        {
+            if (string.IsNullOrEmpty(account.LoginInfo.GUIDFingerprint))
+            {
+                account.LoginInfo.GUIDFingerprint = Guid.NewGuid().ToString();
+            }
+
+            FingerprintUpdater.UpdateFingerprint(_fingerprinting, _http, account.LoginInfo.GUIDFingerprint);
+        }
+
         switch (account.Status)
         {
             case AccountLoginStatus.Unsure:
