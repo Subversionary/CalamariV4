@@ -50,6 +50,11 @@ public static class MarseyVars
     public static readonly string MarseyResourceFolder = Path.Combine(MarseyFolder, "ResourcePacks");
 
     /// <summary>
+    /// Folder containing marseypatch dependencies
+    /// </summary>
+    public static readonly string MarseyDependencyFolder = Path.Combine(MarseyPatchFolder, "Dependency");
+
+    /// <summary>
     /// Log identified for marseyloader
     /// </summary>
     public static readonly string MarseyLoggerPrefix = "MARSEY";

@@ -4,6 +4,7 @@ using System.Reflection;
 using Marsey.PatchAssembly;
 using Marsey.Patches;
 using Marsey.Misc;
+using Marsey.PatchAssembly.Dependency;
 using Marsey.Stealthsey;
 using Marsey.Stealthsey.Reflection;
 
@@ -24,13 +25,15 @@ public class SubverterPatch : IPatch
     public string Name { get; set; }
     public string Desc { get; set; }
     public MethodInfo? Entry { get; set; }
+    public HashSet<MarseyDependency> Dependencies { get; set; }
     public bool Enabled { get; set; }
 
-    public SubverterPatch(string asmpath, Assembly asm, string name, string desc)
+    public SubverterPatch(string asmpath, Assembly asm, string name, string desc, HashSet<MarseyDependency> dependencies)
     {
         Asmpath = asmpath;
         Name = name;
         Desc = desc;
+        Dependencies = dependencies;
         Asm = asm;
     }
 

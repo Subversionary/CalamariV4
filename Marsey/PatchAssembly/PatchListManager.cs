@@ -19,7 +19,7 @@ public static class PatchListManager
     /// </summary>
     public static void RecheckPatches()
     {
-        int folderPatchCount = FileHandler.GetPatches(new[] { MarseyVars.MarseyPatchFolder }).Count;
+        int folderPatchCount = FileHandler.GetAssemblyPaths(new[] { MarseyVars.MarseyPatchFolder }).Count;
         if (folderPatchCount != _patches.Count)
         {
             ResetList();

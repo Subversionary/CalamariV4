@@ -34,10 +34,11 @@ public static class LauncherPaths
     public static readonly string PathPublicKey = Path.Combine(DirLauncherInstall, "signing_key");
     public static readonly string PathContentDb = Path.Combine(DirLocalData, "content.db");
     public static readonly string PathOverrideAssetsDb = Path.Combine(DirLocalData, "override_assets.db");
-    
+
     // MarseyPaths
     public static readonly string DirMarsey = Path.Combine(DirLauncherInstall, MarseyVars.MarseyFolder);
     public static readonly string DirPatch = Path.Combine(DirLauncherInstall, MarseyVars.MarseyPatchFolder);
+    public static readonly string DirMarseyDeps = Path.Combine(DirLauncherInstall, MarseyVars.MarseyDependencyFolder);
     public static readonly string DirRPack = Path.Combine(DirLauncherInstall, MarseyVars.MarseyResourceFolder);
     public static readonly string PathClientStdmarseyLog = Path.Combine(DirLogs, MarseyVars.MarseyLoggerFileName);
 
@@ -50,6 +51,7 @@ public static class LauncherPaths
 
         Ensure(DirMarsey);
         Ensure(DirPatch);
+        Ensure(DirMarseyDeps);
         Ensure(DirRPack);
         static void Ensure(string path) => Helpers.EnsureDirectoryExists(path);
     }

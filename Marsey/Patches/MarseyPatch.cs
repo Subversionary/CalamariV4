@@ -1,4 +1,5 @@
 using System.Reflection;
+using Marsey.PatchAssembly.Dependency;
 
 namespace Marsey.Patches;
 
@@ -12,15 +13,17 @@ public class MarseyPatch : IPatch
     public string Name { get; set; } // Patch's name
     public string Desc { get; set; } // Patch's description
     public MethodInfo? Entry { get; set; } // Method to execute on patch, if available
+    public HashSet<MarseyDependency> Dependencies { get; set; }
     public bool Preload { get; set; } = false; // Is the patch getting loaded before game assemblies
     public bool Enabled { get; set; } // Is the patch enabled or not.
 
-    public MarseyPatch(string asmpath, Assembly asm, string name, string desc, bool preload = false)
+    public MarseyPatch(string asmpath, Assembly asm, string name, string desc, HashSet<MarseyDependency> dependencies, bool preload = false)
     {
         this.Asmpath = asmpath;
         this.Name = name;
         this.Desc = desc;
         this.Asm = asm;
+        this.Dependencies = dependencies;
         this.Preload = preload;
     }
 

@@ -17,57 +17,57 @@ public abstract class FileHandler
     /// <summary>
     /// Prepare data about enabled mods to send to the loader
     /// </summary>
-public static async Task PrepareMods(string[]? path = null)
-{
-    path ??= new[] { MarseyVars.MarseyFolder };
-    string[] patchPath = new[] { MarseyVars.MarseyPatchFolder };
-    string[] resPath = new[] { MarseyVars.MarseyResourceFolder };
-
-    List<MarseyPatch> marseyPatches = Marsyfier.GetMarseyPatches();
-    List<SubverterPatch> subverterPatches = Subverter.GetSubverterPatches();
-    List<ResourcePack> resourcePacks = ResMan.GetRPacks();
-
-    IPC.Server server = new();
-
-    // Prepare preloading MarseyPatches
-    List<string> preloadpaths = marseyPatches
-        .Where(p => p is { Enabled: true, Preload: true })
-        .Select(p => p.Asmpath)
-        .ToList();
-
-    // Send preloading MarseyPatches through named pipe
-    string preloadData = string.Join(",", preloadpaths);
-    Task preloadTask = server.ReadySend("PreloadMarseyPatchesPipe", preloadData);
-
-    // If we actually do have any - remove them from the marseypatch list
-    if (preloadpaths.Count != 0)
+    public static async Task PrepareMods(string[]? path = null)
     {
-        marseyPatches.RemoveAll(p => preloadpaths.Contains(p.Asmpath));
-    }
+        path ??= new[] { MarseyVars.MarseyFolder };
+        string[] patchPath = new[] { MarseyVars.MarseyPatchFolder };
+        string[] resPath = new[] { MarseyVars.MarseyResourceFolder };
 
-    // Prepare remaining MarseyPatches
-    List<string> marseyAsmpaths = marseyPatches.Where(p => p.Enabled).Select(p => p.Asmpath).ToList();
-    string marseyData = string.Join(",", marseyAsmpaths);
-    Task marseyTask = server.ReadySend("MarseyPatchesPipe", marseyData);
+        List<MarseyPatch> marseyPatches = Marsyfier.GetMarseyPatches();
+        List<SubverterPatch> subverterPatches = Subverter.GetSubverterPatches();
+        List<ResourcePack> resourcePacks = ResMan.GetRPacks();
 
-    // Prepare SubverterPatches
-    List<string> subverterAsmpaths = subverterPatches.Where(p => p.Enabled).Select(p => p.Asmpath).ToList();
-    string subverterData = string.Join(",", subverterAsmpaths);
-    Task subverterTask = server.ReadySend("SubverterPatchesPipe", subverterData);
+        IPC.Server server = new();
+
+        // Prepare preloading MarseyPatches
+        List<string> preloadpaths = marseyPatches
+            .Where(p => p is { Enabled: true, Preload: true })
+            .Select(p => p.Asmpath)
+            .ToList();
+
+        // Send preloading MarseyPatches through named pipe
+        string preloadData = string.Join(",", preloadpaths);
+        Task preloadTask = server.ReadySend("PreloadMarseyPatchesPipe", preloadData);
+
+        // If we actually do have any - remove them from the marseypatch list
+        if (preloadpaths.Count != 0)
+        {
+            marseyPatches.RemoveAll(p => preloadpaths.Contains(p.Asmpath));
+        }
+
+        // Prepare remaining MarseyPatches
+        List<string> marseyAsmpaths = marseyPatches.Where(p => p.Enabled).Select(p => p.Asmpath).ToList();
+        string marseyData = string.Join(",", marseyAsmpaths);
+        Task marseyTask = server.ReadySend("MarseyPatchesPipe", marseyData);
+
+        // Prepare SubverterPatches
+        List<string> subverterAsmpaths = subverterPatches.Where(p => p.Enabled).Select(p => p.Asmpath).ToList();
+        string subverterData = string.Join(",", subverterAsmpaths);
+        Task subverterTask = server.ReadySend("SubverterPatchesPipe", subverterData);
 
 #if DEBUG
-    // Prepare ResourcePacks
-    List<string> rpackPaths = resourcePacks.Where(rp => rp.Enabled).Select(rp => rp.Dir).ToList();
-    string rpackData = string.Join(",", rpackPaths);
-    Task resourceTask = server.ReadySend("ResourcePacksPipe", rpackData);
+        // Prepare ResourcePacks
+        List<string> rpackPaths = resourcePacks.Where(rp => rp.Enabled).Select(rp => rp.Dir).ToList();
+        string rpackData = string.Join(",", rpackPaths);
+        Task resourceTask = server.ReadySend("ResourcePacksPipe", rpackData);
 
-    // Wait for all tasks to complete
-    await Task.WhenAll(preloadTask, marseyTask, subverterTask, resourceTask);
+        // Wait for all tasks to complete
+        await Task.WhenAll(preloadTask, marseyTask, subverterTask, resourceTask);
 #else
-    // Wait for all tasks to complete
-    await Task.WhenAll(preloadTask, marseyTask, subverterTask);
+        // Wait for all tasks to complete
+        await Task.WhenAll(preloadTask, marseyTask, subverterTask);
 #endif
-}
+    }
 
 
 
@@ -86,7 +86,7 @@ public static async Task PrepareMods(string[]? path = null)
             PatchListManager.RecheckPatches();
         }
 
-        List<string> files = pipe ? GetFilesFromPipe(pipename) : GetPatches(path);
+        List<string> files = pipe ? GetFilesFromPipe(pipename) : GetAssemblyPaths(path);
 
         foreach (string file in files)
         {
@@ -119,17 +119,8 @@ public static async Task PrepareMods(string[]? path = null)
 
         try
         {
-            if (lockup)
-            {
-                Assembly assembly = Assembly.LoadFrom(file);
-                AssemblyInitializer.Initialize(assembly, assembly.Location);
-            }
-            else
-            {
-                byte[] assemblyData = File.ReadAllBytes(file);
-                Assembly assembly = Assembly.Load(assemblyData);
-                AssemblyInitializer.Initialize(assembly, file);
-            }
+            Assembly assembly = CreateAssembly(file, lockup);
+            AssemblyInitializer.Initialize(assembly, lockup ? assembly.Location : file);
         }
         catch (FileNotFoundException)
         {
@@ -149,12 +140,26 @@ public static async Task PrepareMods(string[]? path = null)
         }
     }
 
+    /// <inheritdoc cref="LoadExactAssembly"/>
+    public static Assembly CreateAssembly(string file, bool lockup = false)
+    {
+        if (lockup)
+        {
+            return Assembly.LoadFrom(file);
+        }
+        else
+        {
+            byte[] assemblyData = File.ReadAllBytes(file);
+            return Assembly.Load(assemblyData);
+        }
+    }
+
     /// <summary>
     /// Retrieves the file paths of all DLL files in a specified subdirectory
     /// </summary>
     /// <param name="subdir">An array of strings representing the path to the subdirectory</param>
     /// <returns>An array of strings containing the full paths to each DLL file in the specified subdirectory</returns>
-    public static List<string> GetPatches(string[] subdir)
+    public static List<string> GetAssemblyPaths(string[] subdir)
     {
         try
         {

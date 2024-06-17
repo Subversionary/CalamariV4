@@ -3,6 +3,7 @@ using Marsey.Patches;
 using Marsey.Stealthsey;
 using Marsey.Subversion;
 using Marsey.Misc;
+using Marsey.PatchAssembly.Dependency;
 
 namespace Marsey.PatchAssembly;
 
@@ -11,11 +12,11 @@ namespace Marsey.PatchAssembly;
 /// </summary>
 public static class AssemblyInitializer
 {
-    private static readonly Dictionary<string, Func<Assembly, string, string, string, bool, IPatch>> PatchFactory =
-        new Dictionary<string, Func<Assembly, string, string, string, bool, IPatch>>
+    private static readonly Dictionary<string, Func<Assembly, string, string, string, HashSet<MarseyDependency>, bool, IPatch>> PatchFactory =
+        new Dictionary<string, Func<Assembly, string, string, string, HashSet<MarseyDependency>, bool, IPatch>>
         {
-            { "MarseyPatch", (assembly, assemblyLocation, name, description, preloadField) => new MarseyPatch(assemblyLocation, assembly, name, description, preloadField) },
-            { "SubverterPatch", (assembly, assemblyLocation, name, description, preloadField) => new SubverterPatch(assemblyLocation, assembly, name, description) }
+            { "MarseyPatch", (assembly, assemblyLocation, name, description, dependencies, preloadField) => new MarseyPatch(assemblyLocation, assembly, name, description, dependencies, preloadField) },
+            { "SubverterPatch", (assembly, assemblyLocation, name, description, dependencies, preloadField) => new SubverterPatch(assemblyLocation, assembly, name, description, dependencies) }
         };
 
 
@@ -99,13 +100,32 @@ public static class AssemblyInitializer
         if (dataType == null) return;
 
         // Check if its even valid
-        if (!PatchFactory.TryGetValue(dataType.Name, out Func<Assembly, string, string, string, bool, IPatch>? createPatch)) return;
+        if (!PatchFactory.TryGetValue(dataType.Name, out Func<Assembly, string, string, string, HashSet<MarseyDependency>, bool, IPatch>? createPatch)) return;
 
-        MarseyLogger.Log(MarseyLogger.LogType.TRCE, "AssemblyInitializer", $"{assembly.GetName()} passed PatchFactory validation");
+        //MarseyLogger.Log(MarseyLogger.LogType.TRCE, "AssemblyInitializer", $"{assembly.GetName()} passed PatchFactory validation");
 
         Hidesey.HidePatch(assembly); // Conceal assembly from the game
 
-        IPatch patch = createPatch(assembly, path, name, description, preloadField);
+        DependencyInitializer.TryFetchDependencies(assembly, out HashSet<MarseyDependency>? dependencies);
+
+        IPatch patch = createPatch(assembly, path, name, description, dependencies, preloadField);
+
+        if (!DependencyManager.SatisfiedDeps(patch.Dependencies, out HashSet<MarseyDependency>? missing))
+        {
+            string missingdepstring = "";
+            int missingCount = 1;
+
+            foreach (MarseyDependency dep in missing)
+            {
+                string version = dep.version?.ToString() ?? "null";
+                missingdepstring += $"{dep.asmname}, {version}\n";
+                missingCount++;
+            }
+
+            MarseyLogger.Log(MarseyLogger.LogType.ERRO, $"Missing dependencies for {name}! Count: {missingCount}\n{missingdepstring}");
+        }
+
+
         PatchListManager.AddPatchToList(patch);
     }
 }

@@ -15,6 +15,7 @@ using Marsey.Game.Resources;
 using Marsey.Patches;
 using Marsey.Subversion;
 using Marsey.Misc;
+using Marsey.PatchAssembly.Dependency;
 using SS14.Launcher.Marseyverse;
 
 namespace SS14.Launcher.ViewModels.MainWindowTabs
@@ -57,6 +58,7 @@ namespace SS14.Launcher.ViewModels.MainWindowTabs
 
         private void LoadInitialResources()
         {
+            DependencyInitializer.Initialize();
             FileHandler.LoadAssemblies();
             ResMan.LoadDir();
         }
